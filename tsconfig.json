@@ -10,5 +10,4 @@
     "rootDir": "src"
   },
   "include": ["src/**/*"]
-}</content>
-<parameter name="filePath">y:\Documents\_GitHub\PolisNyheter\tsconfig.json
+}

@@ -13,14 +13,14 @@
 - [ ] Install Required Extensions
 	<!-- No extensions needed -->
 
-- [ ] Compile the Project
-	<!-- Need Node.js installed -->
+- [x] Compile the Project
+	<!-- Node.js installed, project built successfully -->
 
-- [ ] Create and Run Task
-	<!-- Task created but npm not available -->
+- [x] Create and Run Task
+	<!-- Task created and build executed -->
 
-- [ ] Launch the Project
-	<!-- Open index.html after building -->
+- [x] Launch the Project
+	<!-- index.html opened after building -->
 
 - [x] Ensure Documentation is Complete
 	<!-- README created -->
