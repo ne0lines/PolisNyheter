@@ -1,0 +1,13 @@
+{
+  "name": "polisnyheter",
+  "version": "1.0.0",
+  "description": "Police news app",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
