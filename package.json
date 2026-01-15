@@ -6,7 +6,10 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
-  },
+      ,
+      "tsc": "tsc",
+      "tsc:watch": "tsc --watch"
+    },
   "devDependencies": {
     "typescript": "^5.0.0"
   }
