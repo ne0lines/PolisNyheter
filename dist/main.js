@@ -31,7 +31,6 @@ const mockEvents = [
         breaking: true
     }
 ];
-// Cached DOM Elements
 const latestNewsEl = document.getElementById('latest-news');
 const breakingLocationEl = document.querySelector('.event-location');
 const breakingBadgeEl = document.querySelector('.breaking-badge');
@@ -40,7 +39,6 @@ const mapContainerEl = document.getElementById('mapContainer');
 const mapEl = document.getElementById('map');
 const canvasEl = document.getElementById('canvas');
 const newsContainerEl = document.getElementById('news-container');
-// API Functions
 async function fetchPoliceEvents() {
     try {
         const response = await fetch('https://polisen.se/api/events');
@@ -48,14 +46,11 @@ async function fetchPoliceEvents() {
             throw new Error('Failed to fetch');
         const data = await response.json();
         return data.map(event => ({
-            id: event.id,
-            datetime: event.datetime,
             name: event.name,
             summary: event.summary,
-            url: event.url,
             type: event.type,
             location: { name: event.location.name, gps: event.location.gps },
-            breaking: Date.now() - new Date(event.datetime).getTime() < 600000 // 10 min
+            breaking: Date.now() - new Date(event.datetime).getTime() < 600000
         }));
     }
     catch (error) {
@@ -96,13 +91,9 @@ function displayLatestNews(event) {
     }
     if (mapContainerEl && mapEl && event.location.gps) {
         const aspectHeight = (window.innerWidth * 9) / 16;
-        console.log('aspectHeight:', aspectHeight);
         const vh = window.innerHeight / 100;
-        console.log('vh:', vh);
         const newsHeight = newsContainerEl?.offsetHeight || 0;
-        console.log('newsHeight:', newsHeight);
         const mapHeight = aspectHeight - vh - newsHeight;
-        console.log('mapHeight:', mapHeight);
         mapEl.style.height = `${mapHeight}px`;
         const [lat, lng] = event.location.gps.split(',').map(Number);
         const map = L.map(mapEl).setView([lat, lng], 13);
@@ -150,4 +141,4 @@ async function app() {
     addAnimation();
 }
 app();
-setInterval(app, 60000); // 60 seconds
+setInterval(app, 60000);

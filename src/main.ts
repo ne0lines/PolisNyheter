@@ -65,11 +65,8 @@ async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
     if (!response.ok) throw new Error('Failed to fetch');
     const data: any[] = await response.json();
     return data.map(event => ({
-      id: event.id,
-      datetime: event.datetime,
       name: event.name,
       summary: event.summary,
-      url: event.url,
       type: event.type as EventType,
       location: { name: event.location.name, gps: event.location.gps },
       breaking: Date.now() - new Date(event.datetime).getTime() < 600000
