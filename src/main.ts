@@ -1,3 +1,5 @@
+// Interfaces and Types
+declare const L: any;
 interface PoliceLocation {
   name: string;
   gps?: string;
@@ -49,12 +51,21 @@ const mockEvents: PoliceEvent[] = [
   }
 ];
 
+// Cached DOM Elements
+const latestNewsEl = document.getElementById('latest-news');
+const breakingLocationEl = document.querySelector('.event-location') as HTMLElement;
+const breakingBadgeEl = document.querySelector('.breaking-badge') as HTMLElement;
+const tickerListEl = document.getElementById('ticker-list');
+const mapContainerEl = document.getElementById('mapContainer');
+const mapEl = document.getElementById('map');
+const canvasEl = document.getElementById('canvas');
+const newsContainerEl = document.getElementById('news-container');
+
+// API Functions
 async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
   try {
     const response = await fetch('https://polisen.se/api/events');
-    if (!response.ok) {
-      throw new Error('Failed to fetch');
-    }
+    if (!response.ok) throw new Error('Failed to fetch');
     const data: any[] = await response.json();
     return data.map(event => ({
       id: event.id,
@@ -63,11 +74,8 @@ async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
       summary: event.summary,
       url: event.url,
       type: event.type as EventType,
-      location: {
-        name: event.location.name,
-        gps: event.location.gps
-      },
-      breaking: new Date().getTime() - new Date(event.datetime).getTime() < 10 * 60 * 1000
+      location: { name: event.location.name, gps: event.location.gps },
+      breaking: Date.now() - new Date(event.datetime).getTime() < 600000 // 10 min
     }));
   } catch (error) {
     console.error('Error fetching events:', error);
@@ -76,82 +84,73 @@ async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
 }
 
 function displayLatestNews(event: PoliceEvent): void {
-  const latestNews = document.getElementById('latest-news');
-  const newsContainerHeight = document.getElementById('news-container')?.style.height;
-  if (!latestNews || !newsContainerHeight) return;
+  if (!latestNewsEl) return;
 
-  const breakingLocation =  document.querySelector('.event-location');
-  const breakingBadge = document.querySelector('.breaking-badge');
-  const title = latestNews.querySelector('h2');
-  const location = latestNews.querySelector('span.location');
-  const summary = latestNews.querySelector('span.summary');
-  const mapContainer = document.getElementById('mapContainer');
-  const mapElement = document.getElementById('map');
+  const titleEl = latestNewsEl.querySelector('h2');
+  const summaryEl = latestNewsEl.querySelector('span.summary');
 
-  if(event.breaking){
-    if (breakingLocation) breakingLocation.style.display = 'block';
-    if (breakingLocation) breakingLocation.textContent = event.location.name;
-    if (breakingBadge) breakingBadge.style.display = event.breaking ? 'block' : 'none';
-    if (title) title.textContent = event.type + ':'; 
-    if (summary) summary.textContent = event.summary;
-  }
-  else{
-    if(breakingLocation) breakingLocation.style.display = 'none';
-    if(title) title.textContent = event.type + ' i ' + event.location.name;
-    if(summary) summary.textContent = event.summary;
-  }
-  if (mapContainer && mapElement && event.location.gps) {
-    mapContainer.style.display = 'block';
-    const [lat, lng] = event.location.gps.split(',').map(coord => parseFloat(coord.trim()));
-    const map = L.map(mapElement).setView([lat, lng], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-    L.marker([lat, lng]).addTo(map)
-      .bindPopup(event.type)
-      .openPopup();
-
-    mapElement.style.height = `calc(70dvh - ${newsContainerHeight})`;
+  if (event.breaking) {
+    if (breakingLocationEl) breakingLocationEl.style.display = 'block';
+    if (breakingLocationEl) breakingLocationEl.textContent = event.location.name;
+    if (breakingBadgeEl) breakingBadgeEl.style.display = 'block';
+    if (mapContainerEl) mapContainerEl.style.display = 'block';
+    if (titleEl) titleEl.textContent = `${event.type}:`;
+    if (summaryEl) summaryEl.textContent = event.summary;
+  } else {
+    if (breakingLocationEl) breakingLocationEl.style.display = 'none';
+    if (breakingBadgeEl) breakingBadgeEl.style.display = 'none';
+    if (mapContainerEl) mapContainerEl.style.display = 'none';
+    if (titleEl) titleEl.textContent = `${event.type} i ${event.location.name}`;
+    if (summaryEl) summaryEl.textContent = event.summary;
   }
 
+  if (mapContainerEl && mapEl && event.location.gps) {
+    const aspectHeight = (window.innerWidth * 9) / 16;
+    console.log('aspectHeight:', aspectHeight);
+    const vh = window.innerHeight / 100;
+    console.log('vh:', vh);
+    const newsHeight = newsContainerEl?.offsetHeight || 0;
+    console.log('newsHeight:', newsHeight);
+    const mapHeight = aspectHeight - vh - newsHeight;
+    console.log('mapHeight:', mapHeight);
+    mapEl.style.height = `${mapHeight}px`;
+    const [lat, lng] = event.location.gps.split(',').map(Number);
+    const map = L.map(mapEl).setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.marker([lat, lng]).addTo(map).bindPopup(event.type).openPopup();
+    map.invalidateSize();
+  }
 }
 
 function createEventElement(event: PoliceEvent): HTMLElement {
-  const article = document.createElement('li');
+  const li = document.createElement('li');
   const title = document.createElement('h3');
   title.textContent = event.type;
-  article.appendChild(title);
+  li.appendChild(title);
 
   const summary = document.createElement('span');
   summary.className = 'event-summary';
   summary.textContent = event.summary;
-  article.appendChild(summary);
+  li.appendChild(summary);
 
-  return article;
+  return li;
 }
 
 function displayEventTicker(events: PoliceEvent[]): void {
-  const container = document.getElementById('ticker-list');
-  if (!container) return;
-
-  container.innerHTML = '';
-
-  events.forEach(event => {
-    const article = createEventElement(event);
-    container.appendChild(article);
-  });
+  if (!tickerListEl) return;
+  tickerListEl.innerHTML = '';
+  events.forEach(event => tickerListEl.appendChild(createEventElement(event)));
 }
 
-const scrollers = document.querySelectorAll('#news-ticker');
-
-function addAnimation() {
+function addAnimation(): void {
+  const scrollers = document.querySelectorAll('#news-ticker');
   scrollers.forEach(scroller => {
     const scrollerInner = scroller.querySelector('.scroller');
-    const scrollerContent = Array.from(scrollerInner.children);
-    scrollerContent.forEach(item => {
-      const duplicatedItem = item.cloneNode(true);
-      scrollerInner!.appendChild(duplicatedItem);
-    });
+    if (scrollerInner) {
+      Array.from(scrollerInner.children).forEach(item => {
+        scrollerInner.appendChild(item.cloneNode(true));
+      });
+    }
   });
 }
 
@@ -162,11 +161,10 @@ async function app(): Promise<void> {
   const latest = events[0];
   const tickerEvents = events.slice(1, 11);
 
-  if (latest) {
-    displayLatestNews(latest);
-  }
+  if (latest) displayLatestNews(latest);
   displayEventTicker(tickerEvents);
   addAnimation();
 }
+
 app();
-setInterval(app, 60 * 1000);
+setInterval(app, 60000); // 60 seconds
