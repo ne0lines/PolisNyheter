@@ -1,4 +1,3 @@
-// Interfaces and Types
 declare const L: any;
 interface PoliceLocation {
   name: string;
@@ -51,7 +50,6 @@ const mockEvents: PoliceEvent[] = [
   }
 ];
 
-// Cached DOM Elements
 const latestNewsEl = document.getElementById('latest-news');
 const breakingLocationEl = document.querySelector('.event-location') as HTMLElement;
 const breakingBadgeEl = document.querySelector('.breaking-badge') as HTMLElement;
@@ -61,7 +59,6 @@ const mapEl = document.getElementById('map');
 const canvasEl = document.getElementById('canvas');
 const newsContainerEl = document.getElementById('news-container');
 
-// API Functions
 async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
   try {
     const response = await fetch('https://polisen.se/api/events');
@@ -75,7 +72,7 @@ async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
       url: event.url,
       type: event.type as EventType,
       location: { name: event.location.name, gps: event.location.gps },
-      breaking: Date.now() - new Date(event.datetime).getTime() < 600000 // 10 min
+      breaking: Date.now() - new Date(event.datetime).getTime() < 600000
     }));
   } catch (error) {
     console.error('Error fetching events:', error);
@@ -163,4 +160,4 @@ async function app(): Promise<void> {
 }
 
 app();
-setInterval(app, 60000); // 60 seconds
+setInterval(app, 60000);
