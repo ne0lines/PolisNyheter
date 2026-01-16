@@ -106,13 +106,9 @@ function displayLatestNews(event: PoliceEvent): void {
 
   if (mapContainerEl && mapEl && event.location.gps) {
     const aspectHeight = (window.innerWidth * 9) / 16;
-    console.log('aspectHeight:', aspectHeight);
     const vh = window.innerHeight / 100;
-    console.log('vh:', vh);
     const newsHeight = newsContainerEl?.offsetHeight || 0;
-    console.log('newsHeight:', newsHeight);
     const mapHeight = aspectHeight - vh - newsHeight;
-    console.log('mapHeight:', mapHeight);
     mapEl.style.height = `${mapHeight}px`;
     const [lat, lng] = event.location.gps.split(',').map(Number);
     const map = L.map(mapEl).setView([lat, lng], 13);
