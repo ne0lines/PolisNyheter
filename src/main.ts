@@ -51,8 +51,8 @@ const mockEvents: PoliceEvent[] = [
 ];
 
 const latestNewsEl = document.getElementById('latest-news');
-const breakingLocationEl = document.querySelector('.event-location') as HTMLElement;
-const breakingBadgeEl = document.querySelector('.breaking-badge') as HTMLElement;
+const breakingLocationEl = document.querySelector('.event-location');
+const breakingBadgeEl = document.querySelector('.breaking-badge');
 const tickerListEl = document.getElementById('ticker-list');
 const mapContainerEl = document.getElementById('mapContainer');
 const mapEl = document.getElementById('map');
