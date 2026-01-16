@@ -116,7 +116,6 @@ div.news-badge{
   right:2.5rem;
   z-index:10;
   transform: perspective(800px) rotateY(-7.5deg);
-  background-color: yellow;
 }
 
 #news-ticker {
