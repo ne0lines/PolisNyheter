@@ -50,14 +50,14 @@ const mockEvents: PoliceEvent[] = [
   }
 ];
 
-const latestNewsEl = document.getElementById('latest-news');
-const breakingLocationEl = document.querySelector('.event-location');
-const breakingBadgeEl = document.querySelector('.breaking-badge');
-const tickerListEl = document.getElementById('ticker-list');
-const mapContainerEl = document.getElementById('mapContainer');
-const mapEl = document.getElementById('map');
-const canvasEl = document.getElementById('canvas');
-const newsContainerEl = document.getElementById('news-container');
+const latestNewsEl = document.getElementById('latest-news') as HTMLElement | null;
+const breakingLocationEl = document.querySelector('.event-location') as HTMLElement | null;
+const breakingBadgeEl = document.querySelector('.breaking-badge') as HTMLElement | null;
+const tickerListEl = document.getElementById('ticker-list') as HTMLElement | null;
+const mapContainerEl = document.getElementById('mapContainer') as HTMLElement | null;
+const mapEl = document.getElementById('map') as HTMLElement | null;
+const canvasEl = document.getElementById('canvas') as HTMLElement | null;
+const newsContainerEl = document.getElementById('news-container') as HTMLElement | null;
 
 async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
   try {
@@ -65,8 +65,11 @@ async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
     if (!response.ok) throw new Error('Failed to fetch');
     const data: any[] = await response.json();
     return data.map(event => ({
+      id: event.id,
+      datetime: event.datetime,
       name: event.name,
       summary: event.summary,
+      url: event.url,
       type: event.type as EventType,
       location: { name: event.location.name, gps: event.location.gps },
       breaking: Date.now() - new Date(event.datetime).getTime() < 600000
