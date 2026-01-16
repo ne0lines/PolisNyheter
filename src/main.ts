@@ -50,14 +50,14 @@ const mockEvents: PoliceEvent[] = [
   }
 ];
 
-const latestNewsEl = document.getElementById('latest-news') as HTMLElement | null;
-const breakingLocationEl = document.querySelector('.event-location') as HTMLElement | null;
-const breakingBadgeEl = document.querySelector('.breaking-badge') as HTMLElement | null;
-const tickerListEl = document.getElementById('ticker-list') as HTMLElement | null;
-const mapContainerEl = document.getElementById('mapContainer') as HTMLElement | null;
-const mapEl = document.getElementById('map') as HTMLElement | null;
-const canvasEl = document.getElementById('canvas') as HTMLElement | null;
-const newsContainerEl = document.getElementById('news-container') as HTMLElement | null;
+const latestNewsEl = document.getElementById('latest-news') as HTMLElement;
+const breakingLocationEl = document.querySelector('.event-location') as HTMLElement;
+const breakingBadgeEl = document.querySelector('.breaking-badge') as HTMLElement;
+const tickerListEl = document.getElementById('ticker-list') as HTMLElement;
+const mapContainerEl = document.getElementById('mapContainer') as HTMLElement;
+const mapEl = document.getElementById('map') as HTMLElement;
+const canvasEl = document.getElementById('canvas') as HTMLElement;
+const newsContainerEl = document.getElementById('news-container') as HTMLElement;
 
 async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
   try {
