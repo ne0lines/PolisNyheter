@@ -1,10 +1,10 @@
-import { renderAdminEventList, renderBlocklist } from './components/admin';
-import { createMapController } from './components/map';
-import { addAnimation, displayEventTicker, displayLatestNews } from './components/news';
-import { filterVisibleEvents } from './services/eventFilters';
-import { fetchPoliceEvents, mockEvents } from './services/policeEventsService';
-import { loadStoredArray, saveStoredArray } from './utils/storage';
-import { normalizeBlockedWord, parseBlockedWordsInput } from './utils/text';
+import { renderAdminEventList, renderBlocklist } from './components/admin.js';
+import { createMapController } from './components/map.js';
+import { addAnimation, displayEventTicker, displayLatestNews } from './components/news.js';
+import { filterVisibleEvents } from './services/eventFilters.js';
+import { fetchPoliceEvents, mockEvents } from './services/policeEventsService.js';
+import { loadStoredArray, saveStoredArray } from './utils/storage.js';
+import { normalizeBlockedWord, parseBlockedWordsInput } from './utils/text.js';
 const latestNewsEl = document.getElementById('latest-news');
 const breakingLocationEl = document.querySelector('.event-location');
 const breakingBadgeEl = document.querySelector('.breaking-badge');

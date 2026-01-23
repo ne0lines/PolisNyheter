@@ -1,4 +1,4 @@
-import type { PoliceEvent } from '../models/PoliceEvent';
+import type { PoliceEvent } from '../models/PoliceEvent.js';
 
 interface LatestNewsElements {
   latestNewsEl: HTMLElement | null;

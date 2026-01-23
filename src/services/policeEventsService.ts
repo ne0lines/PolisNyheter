@@ -1,4 +1,4 @@
-import type { EventType, PoliceEvent } from '../models/PoliceEvent';
+import type { EventType, PoliceEvent } from '../models/PoliceEvent.js';
 
 const breakingWindowMs = 10 * 60 * 1000;
 

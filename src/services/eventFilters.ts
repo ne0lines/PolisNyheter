@@ -1,4 +1,4 @@
-import type { PoliceEvent } from '../models/PoliceEvent';
+import type { PoliceEvent } from '../models/PoliceEvent.js';
 
 /** Check if an event matches any blocked words. Inputs: event and blocked word set. */
 export function matchesBlockedWords(event: PoliceEvent, blockedWords: Set<string>): boolean {

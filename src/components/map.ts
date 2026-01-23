@@ -1,4 +1,4 @@
-import type { PoliceEvent } from '../models/PoliceEvent';
+import type { PoliceEvent } from '../models/PoliceEvent.js';
 
 declare const L: any;
 

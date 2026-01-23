@@ -1,5 +1,5 @@
-import type { PoliceEvent } from '../models/PoliceEvent';
-import { matchesBlockedWords } from '../services/eventFilters';
+import type { PoliceEvent } from '../models/PoliceEvent.js';
+import { matchesBlockedWords } from '../services/eventFilters.js';
 
 /** Build a small status badge element. Inputs: label text and optional class name. */
 function makeAdminFlag(text: string, className: string): HTMLElement {

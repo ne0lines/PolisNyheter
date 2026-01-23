@@ -1,5 +1,5 @@
-import { hashStringToNumber } from '../utils/id';
-import { stripHtml } from '../utils/text';
+import { hashStringToNumber } from '../utils/id.js';
+import { stripHtml } from '../utils/text.js';
 const rssUrl = 'https://www.svt.se/rss.xml';
 const breakingWindowMs = 60 * 60 * 1000;
 export const mockNewsItems = [

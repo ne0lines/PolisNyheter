@@ -1,4 +1,4 @@
-import { matchesBlockedWords } from '../services/eventFilters';
+import { matchesBlockedWords } from '../services/eventFilters.js';
 /** Build a small status badge element. Inputs: label text and optional class name. */
 function makeAdminFlag(text, className) {
     const flag = document.createElement('span');
