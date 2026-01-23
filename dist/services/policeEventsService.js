@@ -37,7 +37,7 @@ export async function fetchPoliceEvents() {
     if (!response.ok) {
         throw new Error(`HTTP ERROR: ${response.status}`);
     }
-    const data = await response.json();
+    const data = (await response.json());
     return data.map(event => ({
         id: event.id,
         datetime: event.datetime,

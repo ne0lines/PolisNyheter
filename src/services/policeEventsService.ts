@@ -1,5 +1,18 @@
 import type { EventType, PoliceEvent } from '../models/PoliceEvent.js';
 
+type PoliceEventApi = {
+  id: number;
+  datetime: string;
+  name: string;
+  summary: string;
+  url: string;
+  type: EventType;
+  location: {
+    name: string;
+    gps?: string;
+  };
+};
+
 const breakingWindowMs = 10 * 60 * 1000;
 
 export const mockEvents: PoliceEvent[] = [
@@ -42,7 +55,7 @@ export async function fetchPoliceEvents(): Promise<PoliceEvent[]> {
     throw new Error(`HTTP ERROR: ${response.status}`);
   }
 
-  const data: any[] = await response.json();
+  const data = (await response.json()) as PoliceEventApi[];
   return data.map(event => ({
     id: event.id,
     datetime: event.datetime,
