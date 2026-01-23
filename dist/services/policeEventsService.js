@@ -1,3 +1,4 @@
+const breakingWindowMs = 10 * 60 * 1000;
 export const mockEvents = [
     {
         id: 1,
@@ -30,10 +31,12 @@ export const mockEvents = [
         breaking: true
     }
 ];
+/** Fetch events from the Polisen API. Inputs: none; throws on HTTP error. */
 export async function fetchPoliceEvents() {
     const response = await fetch('https://polisen.se/api/events');
-    if (!response.ok)
-        throw new Error(`Failed to fetch (${response.status})`);
+    if (!response.ok) {
+        throw new Error(`HTTP ERROR: ${response.status}`);
+    }
     const data = await response.json();
     return data.map(event => ({
         id: event.id,
@@ -43,6 +46,6 @@ export async function fetchPoliceEvents() {
         url: event.url,
         type: event.type,
         location: { name: event.location.name, gps: event.location.gps },
-        breaking: Date.now() - new Date(event.datetime).getTime() < 600000
+        breaking: Date.now() - new Date(event.datetime).getTime() < breakingWindowMs
     }));
 }

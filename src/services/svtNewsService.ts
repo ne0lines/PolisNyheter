@@ -26,6 +26,7 @@ export const mockNewsItems: NewsItem[] = [
   }
 ];
 
+/** Convert a date string to ISO format. Inputs: raw date string. */
 function toIsoDate(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
@@ -34,6 +35,7 @@ function toIsoDate(value: string): string {
   return parsed.toISOString();
 }
 
+/** Parse a GeoRSS point into "lat,lng". Inputs: point string or null. */
 function parseGeoPoint(value: string | null): string | undefined {
   if (!value) return undefined;
   const parts = value.trim().split(/\s+/);
@@ -41,6 +43,7 @@ function parseGeoPoint(value: string | null): string | undefined {
   return `${parts[0]},${parts[1]}`;
 }
 
+/** Fetch and parse SVT RSS. Inputs: none; throws on HTTP or parse errors. */
 export async function fetchSvtNews(): Promise<NewsItem[]> {
   const response = await fetch(rssUrl);
   if (!response.ok) {

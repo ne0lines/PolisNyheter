@@ -1,3 +1,4 @@
+/** Create a stable numeric hash from a string. Inputs: string seed. */
 export function hashStringToNumber(input: string): number {
   let hash = 0;
   for (let i = 0; i < input.length; i += 1) {

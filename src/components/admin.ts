@@ -1,6 +1,7 @@
-import type { NewsItem } from '../models/NewsItem';
+import type { PoliceEvent } from '../models/PoliceEvent';
 import { matchesBlockedWords } from '../services/eventFilters';
 
+/** Build a small status badge element. Inputs: label text and optional class name. */
 function makeAdminFlag(text: string, className: string): HTMLElement {
   const flag = document.createElement('span');
   flag.className = `admin-flag ${className}`.trim();
@@ -8,6 +9,7 @@ function makeAdminFlag(text: string, className: string): HTMLElement {
   return flag;
 }
 
+/** Render the blocklist pills. Inputs: container element and blocked words set. */
 export function renderBlocklist(blocklistEl: HTMLElement | null, blockedWords: Set<string>): void {
   if (!blocklistEl) return;
   blocklistEl.innerHTML = '';
@@ -38,9 +40,10 @@ export function renderBlocklist(blocklistEl: HTMLElement | null, blockedWords: S
   });
 }
 
+/** Render the admin event list. Inputs: list container, events, filters, and max count. */
 export function renderAdminEventList(
   adminEventListEl: HTMLElement | null,
-  events: NewsItem[],
+  events: PoliceEvent[],
   blockedWords: Set<string>,
   hiddenEventIds: Set<number>,
   limit: number
@@ -83,17 +86,16 @@ export function renderAdminEventList(
 
     const title = document.createElement('div');
     title.className = 'admin-event-title';
-    const categoryLabel = event.category || 'Nyhet';
-    title.textContent = `${categoryLabel} • ${event.title}`;
+    title.textContent = `${event.type} • ${event.location.name}`;
 
     const summary = document.createElement('div');
     summary.className = 'admin-event-summary';
-    summary.textContent = event.summary || event.title;
+    summary.textContent = event.summary;
 
     const time = document.createElement('time');
     time.className = 'admin-event-time';
-    time.dateTime = event.publishedAt;
-    time.textContent = event.publishedAt.replace('T', ' ');
+    time.dateTime = event.datetime;
+    time.textContent = event.datetime.replace('T', ' ');
 
     meta.appendChild(title);
     meta.appendChild(summary);

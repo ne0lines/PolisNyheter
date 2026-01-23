@@ -1,9 +1,9 @@
-import type { NewsItem } from './models/NewsItem';
+import type { PoliceEvent } from './models/PoliceEvent';
 import { renderAdminEventList, renderBlocklist } from './components/admin';
 import { createMapController } from './components/map';
 import { addAnimation, displayEventTicker, displayLatestNews } from './components/news';
 import { filterVisibleEvents } from './services/eventFilters';
-import { fetchSvtNews, mockNewsItems } from './services/svtNewsService';
+import { fetchPoliceEvents, mockEvents } from './services/policeEventsService';
 import { loadStoredArray, saveStoredArray } from './utils/storage';
 import { normalizeBlockedWord, parseBlockedWordsInput } from './utils/text';
 
@@ -23,12 +23,12 @@ const adminEventListEl = document.getElementById('admin-event-list') as HTMLElem
 const clearHiddenButtonEl = document.getElementById('clear-hidden') as HTMLButtonElement | null;
 
 const blockedWordsStorageKey = 'obsnews.blockedWords';
-const hiddenEventsStorageKey = 'obsnews.hiddenNewsIds';
+const hiddenEventsStorageKey = 'obsnews.hiddenEventIds';
 const adminEventLimit = 20;
 
 const mapController = createMapController({ mapContainerEl, mapEl, newsContainerEl });
 
-let cachedNews: NewsItem[] = [];
+let cachedEvents: PoliceEvent[] = [];
 
 const blockedWords = new Set<string>(
   loadStoredArray(blockedWordsStorageKey, (value): value is string => typeof value === 'string')
@@ -39,39 +39,45 @@ const hiddenEventIds = new Set<number>(
   loadStoredArray(hiddenEventsStorageKey, (value): value is number => typeof value === 'number' && Number.isFinite(value))
 );
 
+/** Persist blocked words to localStorage. Inputs: none; uses current blockedWords set. */
 function persistBlockedWords(): void {
   saveStoredArray(blockedWordsStorageKey, Array.from(blockedWords).sort());
 }
 
+/** Persist hidden event IDs to localStorage. Inputs: none; uses current hiddenEventIds set. */
 function persistHiddenEventIds(): void {
   saveStoredArray(hiddenEventsStorageKey, Array.from(hiddenEventIds).sort((a, b) => a - b));
 }
 
+/** Update the blocklist feedback text. Inputs: message string for the UI. */
 function setBlocklistFeedback(message: string): void {
   if (!blocklistFeedbackEl) return;
   blocklistFeedbackEl.textContent = message;
 }
 
-function renderNews(items: NewsItem[]): void {
-  const visibleItems = filterVisibleEvents(items, blockedWords, hiddenEventIds);
-  const latest = visibleItems[0] ?? null;
-  const tickerItems = visibleItems.slice(1, 11);
+/** Render latest news and ticker. Inputs: full event list (sorted) to filter and render. */
+function renderNews(events: PoliceEvent[]): void {
+  const visibleEvents = filterVisibleEvents(events, blockedWords, hiddenEventIds);
+  const latest = visibleEvents[0] ?? null;
+  const tickerEvents = visibleEvents.slice(1, 11);
 
   displayLatestNews(
     latest,
     { latestNewsEl, breakingLocationEl, breakingBadgeEl },
     mapController.updateMap
   );
-  displayEventTicker(tickerItems, tickerListEl);
+  displayEventTicker(tickerEvents, tickerListEl);
   addAnimation(document);
 }
 
+/** Render all UI sections from cached data. Inputs: none; uses cachedEvents and filters. */
 function renderFromCache(): void {
-  renderNews(cachedNews);
+  renderNews(cachedEvents);
   renderBlocklist(blocklistEl, blockedWords);
-  renderAdminEventList(adminEventListEl, cachedNews, blockedWords, hiddenEventIds, adminEventLimit);
+  renderAdminEventList(adminEventListEl, cachedEvents, blockedWords, hiddenEventIds, adminEventLimit);
 }
 
+/** Handle blocklist form submit. Inputs: submit event from blocklist form. */
 function handleBlocklistSubmit(event: Event): void {
   event.preventDefault();
   if (!blocklistInputEl) return;
@@ -101,6 +107,7 @@ function handleBlocklistSubmit(event: Event): void {
   renderFromCache();
 }
 
+/** Handle clicks on the blocklist remove buttons. Inputs: click event from the list. */
 function handleBlocklistClick(event: Event): void {
   const target = event.target as HTMLElement | null;
   if (!target) return;
@@ -118,6 +125,7 @@ function handleBlocklistClick(event: Event): void {
   renderFromCache();
 }
 
+/** Handle hide/show toggles in the admin list. Inputs: click event from list container. */
 function handleAdminEventListClick(event: Event): void {
   const target = event.target as HTMLElement | null;
   if (!target) return;
@@ -142,12 +150,14 @@ function handleAdminEventListClick(event: Event): void {
   renderFromCache();
 }
 
+/** Clear all hidden IDs. Inputs: none; resets hiddenEventIds set. */
 function handleClearHidden(): void {
   hiddenEventIds.clear();
   persistHiddenEventIds();
   renderFromCache();
 }
 
+/** Initialize admin UI and event listeners. Inputs: none; uses DOM elements. */
 function initializeAdmin(): void {
   renderBlocklist(blocklistEl, blockedWords);
   renderAdminEventList(adminEventListEl, [], blockedWords, hiddenEventIds, adminEventLimit);
@@ -158,15 +168,16 @@ function initializeAdmin(): void {
   if (clearHiddenButtonEl) clearHiddenButtonEl.addEventListener('click', handleClearHidden);
 }
 
+/** Fetch events and render the UI. Inputs: none; handles errors and falls back to mock data. */
 async function app(): Promise<void> {
   console.log('Initierar appen, hämtar data...');
   try {
-    cachedNews = await fetchSvtNews();
+    cachedEvents = await fetchPoliceEvents();
   } catch (error) {
-    console.error('Fel vid hämtning av SVT-nyheter', error);
-    cachedNews = mockNewsItems;
+    console.error('Fel vid hämtning av events', error);
+    cachedEvents = mockEvents;
   }
-  cachedNews.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  cachedEvents.sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
   renderFromCache();
 }
 

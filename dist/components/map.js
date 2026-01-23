@@ -1,11 +1,13 @@
+/** Create a map controller. Inputs: map container, map element, and news container. */
 export function createMapController(elements) {
     let mapInstance = null;
     let mapMarker = null;
+    /** Update the map based on an event. Inputs: PoliceEvent with gps or null to hide map. */
     const updateMap = (event) => {
         const { mapContainerEl, mapEl, newsContainerEl } = elements;
         if (!mapContainerEl || !mapEl)
             return;
-        if (!event || !event.coordinates) {
+        if (!event || !event.location.gps) {
             mapContainerEl.style.display = 'none';
             if (mapInstance) {
                 mapInstance.remove();
@@ -21,7 +23,7 @@ export function createMapController(elements) {
         const newsHeight = newsContainerEl?.offsetHeight || 0;
         const mapHeight = aspectHeight - vh - newsHeight;
         mapEl.style.height = `${mapHeight}px`;
-        const [lat, lng] = event.coordinates.split(',').map(Number);
+        const [lat, lng] = event.location.gps.split(',').map(Number);
         if (!mapInstance) {
             mapInstance = L.map(mapEl).setView([lat, lng], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
@@ -32,7 +34,7 @@ export function createMapController(elements) {
         if (mapMarker) {
             mapMarker.remove();
         }
-        mapMarker = L.marker([lat, lng]).addTo(mapInstance).bindPopup(event.title).openPopup();
+        mapMarker = L.marker([lat, lng]).addTo(mapInstance).bindPopup(event.type).openPopup();
         mapInstance.invalidateSize();
     };
     return { updateMap };

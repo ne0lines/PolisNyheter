@@ -1,4 +1,4 @@
-import type { NewsItem } from '../models/NewsItem';
+import type { PoliceEvent } from '../models/PoliceEvent';
 
 interface LatestNewsElements {
   latestNewsEl: HTMLElement | null;
@@ -6,10 +6,11 @@ interface LatestNewsElements {
   breakingBadgeEl: HTMLElement | null;
 }
 
+/** Render the latest headline area. Inputs: event (or null), UI elements, map update callback. */
 export function displayLatestNews(
-  event: NewsItem | null,
+  event: PoliceEvent | null,
   elements: LatestNewsElements,
-  updateMap: (event: NewsItem | null) => void
+  updateMap: (event: PoliceEvent | null) => void
 ): void {
   const { latestNewsEl, breakingLocationEl, breakingBadgeEl } = elements;
   if (!latestNewsEl) return;
@@ -27,36 +28,40 @@ export function displayLatestNews(
   }
 
   const isBreaking = Boolean(event.breaking);
-  const categoryLabel = event.category || 'Nyhet';
   if (breakingLocationEl) breakingLocationEl.style.display = isBreaking ? 'block' : 'none';
-  if (breakingLocationEl) breakingLocationEl.textContent = isBreaking ? categoryLabel : '';
+  if (breakingLocationEl) breakingLocationEl.textContent = isBreaking ? event.location.name : '';
   if (breakingBadgeEl) breakingBadgeEl.style.display = isBreaking ? 'block' : 'none';
-  if (titleEl) titleEl.textContent = event.title;
-  if (summaryEl) summaryEl.textContent = event.summary || event.title;
+  if (titleEl) {
+    titleEl.textContent = isBreaking ? `${event.type}:` : `${event.type} i ${event.location.name}`;
+  }
+  if (summaryEl) summaryEl.textContent = event.summary;
 
-  updateMap(event);
+  updateMap(isBreaking ? event : null);
 }
 
-export function createEventElement(event: NewsItem): HTMLElement {
+/** Create a ticker list item. Inputs: a PoliceEvent item. */
+export function createEventElement(event: PoliceEvent): HTMLElement {
   const li = document.createElement('li');
   const title = document.createElement('h3');
-  title.textContent = event.category || 'Nyhet';
+  title.textContent = event.type;
   li.appendChild(title);
 
   const summary = document.createElement('span');
   summary.className = 'event-summary';
-  summary.textContent = event.title;
+  summary.textContent = event.summary;
   li.appendChild(summary);
 
   return li;
 }
 
-export function displayEventTicker(events: NewsItem[], tickerListEl: HTMLElement | null): void {
+/** Render the ticker list. Inputs: events array and ticker list element. */
+export function displayEventTicker(events: PoliceEvent[], tickerListEl: HTMLElement | null): void {
   if (!tickerListEl) return;
   tickerListEl.innerHTML = '';
   events.forEach(event => tickerListEl.appendChild(createEventElement(event)));
 }
 
+/** Duplicate ticker items for scrolling animation. Inputs: root node to search within. */
 export function addAnimation(scrollerRoot: ParentNode = document): void {
   const scrollers = scrollerRoot.querySelectorAll('#news-ticker');
   scrollers.forEach(scroller => {

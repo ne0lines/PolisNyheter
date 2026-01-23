@@ -1,7 +1,9 @@
+/** Normalize a word for matching. Inputs: raw word string. */
 export function normalizeBlockedWord(word: string): string {
   return word.trim().toLowerCase();
 }
 
+/** Parse blocklist input into tokens. Inputs: raw input string. */
 export function parseBlockedWordsInput(value: string): string[] {
   return value
     .split(/[\n,]/)
@@ -9,6 +11,7 @@ export function parseBlockedWordsInput(value: string): string[] {
     .filter(Boolean);
 }
 
+/** Strip HTML tags and return text content. Inputs: HTML string. */
 export function stripHtml(value: string): string {
   if (!value) return '';
   const doc = new DOMParser().parseFromString(value, 'text/html');

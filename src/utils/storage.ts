@@ -1,3 +1,4 @@
+/** Load a typed array from localStorage. Inputs: storage key and a type guard. */
 export function loadStoredArray<T>(key: string, guard: (value: unknown) => value is T): T[] {
   try {
     const raw = localStorage.getItem(key);
@@ -11,6 +12,7 @@ export function loadStoredArray<T>(key: string, guard: (value: unknown) => value
   }
 }
 
+/** Save an array to localStorage as JSON. Inputs: storage key and values array. */
 export function saveStoredArray<T>(key: string, values: T[]): void {
   try {
     localStorage.setItem(key, JSON.stringify(values));

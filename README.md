@@ -1,15 +1,6 @@
 # OBSNews
 
-En webbapp som visar nyheter från SVT:s RSS-flöde, med adminvy för att blockera ord och dölja enskilda nyheter.
-
-## Funktioner
-
-- Hämtar och visar nyheter från https://www.svt.se/rss.xml
-- Breaking‑läge markerar nyligen publicerade nyheter
-- News‑ticker för fler händelser
-- Adminvy (`admin.html`) för:
-  - Blocklist med ord/fraser (sparas i localStorage)
-  - Dölja/visa enskilda händelser (sparas i localStorage)
+En webbapp som visar polisnyheter från Polismyndighetens API och fungerar som en enkel overlay. Adminvyn låter dig blockera ord och dölja enskilda händelser.
 
 ## Kom igång
 
@@ -28,9 +19,25 @@ En webbapp som visar nyheter från SVT:s RSS-flöde, med adminvy för att blocke
 
 Tips: för bästa kompatibilitet med ES‑moduler, kör via en lokal server.
 
+## OBS Browser Source
+
+1. Bygg projektet:
+   ```
+   npm run build
+   ```
+2. Starta en lokal server från projektroten:
+   ```
+   python3 -m http.server 8080
+   ```
+3. I OBS: Add -> Browser Source och ange:
+   - URL: `http://localhost:8080/index.html`
+   - Width/Height: `1920x1080`
+4. (Valfritt) Avmarkera “Shutdown source when not visible” om du vill att feeden ska uppdateras även när scenen är dold.
+5. Adminvyn öppnar du i vanlig webbläsare: `http://localhost:8080/admin.html`.
+
 ## Adminvy
 
-- Lägg till blockerade ord i formuläret. Matchning är case‑insensitive mot titel + sammanfattning.
+- Lägg till blockerade ord i formuläret. Matchning är case‑insensitive mot titel + sammanfattning + plats.
 - Dolda händelser sparas direkt via toggle‑knappen.
 - Rensa dolda händelser med “Show all”.
 
@@ -52,4 +59,4 @@ src/
 
 ## Noteringar
 
-- RSS-flödet kräver nätverk. Kartan visas bara om en nyhet innehåller koordinater.
+- Kartan laddar tiles från OpenStreetMap och kräver nätverk.

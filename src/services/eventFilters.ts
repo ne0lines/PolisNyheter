@@ -1,19 +1,21 @@
-import type { NewsItem } from '../models/NewsItem';
+import type { PoliceEvent } from '../models/PoliceEvent';
 
-export function matchesBlockedWords(event: NewsItem, blockedWords: Set<string>): boolean {
+/** Check if an event matches any blocked words. Inputs: event and blocked word set. */
+export function matchesBlockedWords(event: PoliceEvent, blockedWords: Set<string>): boolean {
   if (blockedWords.size === 0) return false;
-  const haystack = `${event.title} ${event.summary} ${event.category}`.toLowerCase();
+  const haystack = `${event.name} ${event.summary} ${event.type} ${event.location.name}`.toLowerCase();
   for (const word of blockedWords) {
     if (word && haystack.includes(word)) return true;
   }
   return false;
 }
 
+/** Filter events based on blocked words and hidden IDs. Inputs: events array and filter sets. */
 export function filterVisibleEvents(
-  events: NewsItem[],
+  events: PoliceEvent[],
   blockedWords: Set<string>,
   hiddenEventIds: Set<number>
-): NewsItem[] {
+): PoliceEvent[] {
   return events.filter(event => {
     if (hiddenEventIds.has(event.id)) return false;
     if (matchesBlockedWords(event, blockedWords)) return false;

@@ -1,10 +1,12 @@
 import { matchesBlockedWords } from '../services/eventFilters';
+/** Build a small status badge element. Inputs: label text and optional class name. */
 function makeAdminFlag(text, className) {
     const flag = document.createElement('span');
     flag.className = `admin-flag ${className}`.trim();
     flag.textContent = text;
     return flag;
 }
+/** Render the blocklist pills. Inputs: container element and blocked words set. */
 export function renderBlocklist(blocklistEl, blockedWords) {
     if (!blocklistEl)
         return;
@@ -31,6 +33,7 @@ export function renderBlocklist(blocklistEl, blockedWords) {
         blocklistEl.appendChild(li);
     });
 }
+/** Render the admin event list. Inputs: list container, events, filters, and max count. */
 export function renderAdminEventList(adminEventListEl, events, blockedWords, hiddenEventIds, limit) {
     if (!adminEventListEl)
         return;
@@ -65,15 +68,14 @@ export function renderAdminEventList(adminEventListEl, events, blockedWords, hid
         meta.className = 'admin-event-meta';
         const title = document.createElement('div');
         title.className = 'admin-event-title';
-        const categoryLabel = event.category || 'Nyhet';
-        title.textContent = `${categoryLabel} • ${event.title}`;
+        title.textContent = `${event.type} • ${event.location.name}`;
         const summary = document.createElement('div');
         summary.className = 'admin-event-summary';
-        summary.textContent = event.summary || event.title;
+        summary.textContent = event.summary;
         const time = document.createElement('time');
         time.className = 'admin-event-time';
-        time.dateTime = event.publishedAt;
-        time.textContent = event.publishedAt.replace('T', ' ');
+        time.dateTime = event.datetime;
+        time.textContent = event.datetime.replace('T', ' ');
         meta.appendChild(title);
         meta.appendChild(summary);
         meta.appendChild(time);

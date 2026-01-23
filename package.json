@@ -1,7 +1,7 @@
 {
   "name": "obsnewsoverlay",
   "version": "1.0.0",
-  "description": "OBSNewsOverlay",
+  "description": "OBSNewsOverlay - Polisen API",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",

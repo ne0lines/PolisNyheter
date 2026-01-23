@@ -2,7 +2,7 @@ import { renderAdminEventList, renderBlocklist } from './components/admin';
 import { createMapController } from './components/map';
 import { addAnimation, displayEventTicker, displayLatestNews } from './components/news';
 import { filterVisibleEvents } from './services/eventFilters';
-import { fetchSvtNews, mockNewsItems } from './services/svtNewsService';
+import { fetchPoliceEvents, mockEvents } from './services/policeEventsService';
 import { loadStoredArray, saveStoredArray } from './utils/storage';
 import { normalizeBlockedWord, parseBlockedWordsInput } from './utils/text';
 const latestNewsEl = document.getElementById('latest-news');
@@ -19,38 +19,44 @@ const blocklistEl = document.getElementById('blocklist');
 const adminEventListEl = document.getElementById('admin-event-list');
 const clearHiddenButtonEl = document.getElementById('clear-hidden');
 const blockedWordsStorageKey = 'obsnews.blockedWords';
-const hiddenEventsStorageKey = 'obsnews.hiddenNewsIds';
+const hiddenEventsStorageKey = 'obsnews.hiddenEventIds';
 const adminEventLimit = 20;
 const mapController = createMapController({ mapContainerEl, mapEl, newsContainerEl });
-let cachedNews = [];
+let cachedEvents = [];
 const blockedWords = new Set(loadStoredArray(blockedWordsStorageKey, (value) => typeof value === 'string')
     .map(normalizeBlockedWord)
     .filter(Boolean));
 const hiddenEventIds = new Set(loadStoredArray(hiddenEventsStorageKey, (value) => typeof value === 'number' && Number.isFinite(value)));
+/** Persist blocked words to localStorage. Inputs: none; uses current blockedWords set. */
 function persistBlockedWords() {
     saveStoredArray(blockedWordsStorageKey, Array.from(blockedWords).sort());
 }
+/** Persist hidden event IDs to localStorage. Inputs: none; uses current hiddenEventIds set. */
 function persistHiddenEventIds() {
     saveStoredArray(hiddenEventsStorageKey, Array.from(hiddenEventIds).sort((a, b) => a - b));
 }
+/** Update the blocklist feedback text. Inputs: message string for the UI. */
 function setBlocklistFeedback(message) {
     if (!blocklistFeedbackEl)
         return;
     blocklistFeedbackEl.textContent = message;
 }
-function renderNews(items) {
-    const visibleItems = filterVisibleEvents(items, blockedWords, hiddenEventIds);
-    const latest = visibleItems[0] ?? null;
-    const tickerItems = visibleItems.slice(1, 11);
+/** Render latest news and ticker. Inputs: full event list (sorted) to filter and render. */
+function renderNews(events) {
+    const visibleEvents = filterVisibleEvents(events, blockedWords, hiddenEventIds);
+    const latest = visibleEvents[0] ?? null;
+    const tickerEvents = visibleEvents.slice(1, 11);
     displayLatestNews(latest, { latestNewsEl, breakingLocationEl, breakingBadgeEl }, mapController.updateMap);
-    displayEventTicker(tickerItems, tickerListEl);
+    displayEventTicker(tickerEvents, tickerListEl);
     addAnimation(document);
 }
+/** Render all UI sections from cached data. Inputs: none; uses cachedEvents and filters. */
 function renderFromCache() {
-    renderNews(cachedNews);
+    renderNews(cachedEvents);
     renderBlocklist(blocklistEl, blockedWords);
-    renderAdminEventList(adminEventListEl, cachedNews, blockedWords, hiddenEventIds, adminEventLimit);
+    renderAdminEventList(adminEventListEl, cachedEvents, blockedWords, hiddenEventIds, adminEventLimit);
 }
+/** Handle blocklist form submit. Inputs: submit event from blocklist form. */
 function handleBlocklistSubmit(event) {
     event.preventDefault();
     if (!blocklistInputEl)
@@ -77,6 +83,7 @@ function handleBlocklistSubmit(event) {
     persistBlockedWords();
     renderFromCache();
 }
+/** Handle clicks on the blocklist remove buttons. Inputs: click event from the list. */
 function handleBlocklistClick(event) {
     const target = event.target;
     if (!target)
@@ -93,6 +100,7 @@ function handleBlocklistClick(event) {
     setBlocklistFeedback(`Removed "${word}".`);
     renderFromCache();
 }
+/** Handle hide/show toggles in the admin list. Inputs: click event from list container. */
 function handleAdminEventListClick(event) {
     const target = event.target;
     if (!target)
@@ -116,11 +124,13 @@ function handleAdminEventListClick(event) {
     persistHiddenEventIds();
     renderFromCache();
 }
+/** Clear all hidden IDs. Inputs: none; resets hiddenEventIds set. */
 function handleClearHidden() {
     hiddenEventIds.clear();
     persistHiddenEventIds();
     renderFromCache();
 }
+/** Initialize admin UI and event listeners. Inputs: none; uses DOM elements. */
 function initializeAdmin() {
     renderBlocklist(blocklistEl, blockedWords);
     renderAdminEventList(adminEventListEl, [], blockedWords, hiddenEventIds, adminEventLimit);
@@ -133,16 +143,17 @@ function initializeAdmin() {
     if (clearHiddenButtonEl)
         clearHiddenButtonEl.addEventListener('click', handleClearHidden);
 }
+/** Fetch events and render the UI. Inputs: none; handles errors and falls back to mock data. */
 async function app() {
     console.log('Initierar appen, hämtar data...');
     try {
-        cachedNews = await fetchSvtNews();
+        cachedEvents = await fetchPoliceEvents();
     }
     catch (error) {
-        console.error('Fel vid hämtning av SVT-nyheter', error);
-        cachedNews = mockNewsItems;
+        console.error('Fel vid hämtning av events', error);
+        cachedEvents = mockEvents;
     }
-    cachedNews.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    cachedEvents.sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
     renderFromCache();
 }
 initializeAdmin();
