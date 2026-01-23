@@ -1,7 +1,7 @@
 {
-  "name": "obsnews",
+  "name": "obsnewsoverlay",
   "version": "1.0.0",
-  "description": "OBSNews - SVT RSS news app",
+  "description": "OBSNewsOverlay",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
