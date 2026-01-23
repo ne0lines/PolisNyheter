@@ -1,7 +1,7 @@
 {
-  "name": "polisnyheter",
+  "name": "obsnews",
   "version": "1.0.0",
-  "description": "Police news app",
+  "description": "OBSNews - SVT RSS news app",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",

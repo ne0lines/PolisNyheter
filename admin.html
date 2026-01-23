@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>OBSNews Admin</title>
+</head>
+<body class="admin-page">
+  <header class="admin-top">
+    <div class="admin-top-bar">
+      <h1>OBSNews Admin</h1>
+      <a href="index.html">Back to OBSNews</a>
+    </div>
+  </header>
+  <section id="admin-panel" aria-label="Admin controls">
+    <div class="admin-card">
+      <header class="admin-header">
+        <h2>Admin filters</h2>
+        <p>Block words and hide specific news items.</p>
+      </header>
+      <form id="blocklist-form" class="admin-form">
+        <label for="blocklist-input">Block words (comma or new line separated)</label>
+        <div class="admin-row">
+          <input id="blocklist-input" name="blockedWords" type="text" autocomplete="off" placeholder="robbery, arson">
+          <button type="submit">Add</button>
+        </div>
+        <p class="form-hint">Matches title and summary, case-insensitive.</p>
+        <p id="blocklist-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+      </form>
+      <ul id="blocklist" class="pill-list"></ul>
+    </div>
+    <div class="admin-card">
+      <header class="admin-header">
+        <h2>Hide individual news</h2>
+        <p>Toggle items you do not want to show.</p>
+      </header>
+      <div class="admin-form">
+        <ul id="admin-event-list" class="admin-event-list"></ul>
+        <div class="admin-row">
+          <button type="button" id="clear-hidden">Show all</button>
+        </div>
+        <p class="form-hint">Changes are saved instantly. List refreshes with the API every minute.</p>
+      </div>
+    </div>
+  </section>
+  <script type="module" src="dist/main.js"></script>
+</body>
+</html>

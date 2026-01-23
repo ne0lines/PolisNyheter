@@ -1,147 +1,150 @@
-"use strict";
-const mockEvents = [
-    {
-        id: 1,
-        datetime: "2023-10-01T10:00:00",
-        name: "Trafikolycka",
-        summary: "En bilolycka på E4.",
-        url: "https://polisen.se/1",
-        type: "Trafik",
-        location: { name: "Stockholm" },
-        breaking: true
-    },
-    {
-        id: 2,
-        datetime: "2023-10-02T15:00:00",
-        name: "Inbrott",
-        summary: "Inbrott i villa.",
-        url: "https://polisen.se/2",
-        type: "Incident",
-        location: { name: "Göteborg", gps: "57.7089,11.9746" },
-        breaking: false
-    },
-    {
-        id: 3,
-        datetime: "2023-10-03T08:30:00",
-        name: "Brand",
-        summary: "Brand i flerfamiljshus.",
-        url: "https://polisen.se/3",
-        type: "Annat",
-        location: { name: "Malmö" },
-        breaking: true
-    }
-];
+import { renderAdminEventList, renderBlocklist } from './components/admin';
+import { createMapController } from './components/map';
+import { addAnimation, displayEventTicker, displayLatestNews } from './components/news';
+import { filterVisibleEvents } from './services/eventFilters';
+import { fetchSvtNews, mockNewsItems } from './services/svtNewsService';
+import { loadStoredArray, saveStoredArray } from './utils/storage';
+import { normalizeBlockedWord, parseBlockedWordsInput } from './utils/text';
 const latestNewsEl = document.getElementById('latest-news');
 const breakingLocationEl = document.querySelector('.event-location');
 const breakingBadgeEl = document.querySelector('.breaking-badge');
 const tickerListEl = document.getElementById('ticker-list');
 const mapContainerEl = document.getElementById('mapContainer');
 const mapEl = document.getElementById('map');
-const canvasEl = document.getElementById('canvas');
 const newsContainerEl = document.getElementById('news-container');
-async function fetchPoliceEvents() {
-    try {
-        const response = await fetch('https://polisen.se/api/events');
-        if (!response.ok)
-            throw new Error('Failed to fetch');
-        const data = await response.json();
-        return data.map(event => ({
-            id: event.id,
-            datetime: event.datetime,
-            name: event.name,
-            summary: event.summary,
-            url: event.url,
-            type: event.type,
-            location: { name: event.location.name, gps: event.location.gps },
-            breaking: Date.now() - new Date(event.datetime).getTime() < 600000
-        }));
-    }
-    catch (error) {
-        console.error('Error fetching events:', error);
-        return mockEvents;
-    }
+const blocklistFormEl = document.getElementById('blocklist-form');
+const blocklistInputEl = document.getElementById('blocklist-input');
+const blocklistFeedbackEl = document.getElementById('blocklist-feedback');
+const blocklistEl = document.getElementById('blocklist');
+const adminEventListEl = document.getElementById('admin-event-list');
+const clearHiddenButtonEl = document.getElementById('clear-hidden');
+const blockedWordsStorageKey = 'obsnews.blockedWords';
+const hiddenEventsStorageKey = 'obsnews.hiddenNewsIds';
+const adminEventLimit = 20;
+const mapController = createMapController({ mapContainerEl, mapEl, newsContainerEl });
+let cachedNews = [];
+const blockedWords = new Set(loadStoredArray(blockedWordsStorageKey, (value) => typeof value === 'string')
+    .map(normalizeBlockedWord)
+    .filter(Boolean));
+const hiddenEventIds = new Set(loadStoredArray(hiddenEventsStorageKey, (value) => typeof value === 'number' && Number.isFinite(value)));
+function persistBlockedWords() {
+    saveStoredArray(blockedWordsStorageKey, Array.from(blockedWords).sort());
 }
-function displayLatestNews(event) {
-    if (!latestNewsEl)
+function persistHiddenEventIds() {
+    saveStoredArray(hiddenEventsStorageKey, Array.from(hiddenEventIds).sort((a, b) => a - b));
+}
+function setBlocklistFeedback(message) {
+    if (!blocklistFeedbackEl)
         return;
-    const titleEl = latestNewsEl.querySelector('h2');
-    const summaryEl = latestNewsEl.querySelector('span.summary');
-    if (event.breaking) {
-        if (breakingLocationEl)
-            breakingLocationEl.style.display = 'block';
-        if (breakingLocationEl)
-            breakingLocationEl.textContent = event.location.name;
-        if (breakingBadgeEl)
-            breakingBadgeEl.style.display = 'block';
-        if (mapContainerEl)
-            mapContainerEl.style.display = 'block';
-        if (titleEl)
-            titleEl.textContent = `${event.type}:`;
-        if (summaryEl)
-            summaryEl.textContent = event.summary;
-    }
-    else {
-        if (breakingLocationEl)
-            breakingLocationEl.style.display = 'none';
-        if (breakingBadgeEl)
-            breakingBadgeEl.style.display = 'none';
-        if (mapContainerEl)
-            mapContainerEl.style.display = 'none';
-        if (titleEl)
-            titleEl.textContent = `${event.type} i ${event.location.name}`;
-        if (summaryEl)
-            summaryEl.textContent = event.summary;
-    }
-    if (mapContainerEl && mapEl && event.location.gps) {
-        const aspectHeight = (window.innerWidth * 9) / 16;
-        const vh = window.innerHeight / 100;
-        const newsHeight = newsContainerEl?.offsetHeight || 0;
-        const mapHeight = aspectHeight - vh - newsHeight;
-        mapEl.style.height = `${mapHeight}px`;
-        const [lat, lng] = event.location.gps.split(',').map(Number);
-        const map = L.map(mapEl).setView([lat, lng], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        L.marker([lat, lng]).addTo(map).bindPopup(event.type).openPopup();
-        map.invalidateSize();
-    }
+    blocklistFeedbackEl.textContent = message;
 }
-function createEventElement(event) {
-    const li = document.createElement('li');
-    const title = document.createElement('h3');
-    title.textContent = event.type;
-    li.appendChild(title);
-    const summary = document.createElement('span');
-    summary.className = 'event-summary';
-    summary.textContent = event.summary;
-    li.appendChild(summary);
-    return li;
+function renderNews(items) {
+    const visibleItems = filterVisibleEvents(items, blockedWords, hiddenEventIds);
+    const latest = visibleItems[0] ?? null;
+    const tickerItems = visibleItems.slice(1, 11);
+    displayLatestNews(latest, { latestNewsEl, breakingLocationEl, breakingBadgeEl }, mapController.updateMap);
+    displayEventTicker(tickerItems, tickerListEl);
+    addAnimation(document);
 }
-function displayEventTicker(events) {
-    if (!tickerListEl)
+function renderFromCache() {
+    renderNews(cachedNews);
+    renderBlocklist(blocklistEl, blockedWords);
+    renderAdminEventList(adminEventListEl, cachedNews, blockedWords, hiddenEventIds, adminEventLimit);
+}
+function handleBlocklistSubmit(event) {
+    event.preventDefault();
+    if (!blocklistInputEl)
         return;
-    tickerListEl.innerHTML = '';
-    events.forEach(event => tickerListEl.appendChild(createEventElement(event)));
-}
-function addAnimation() {
-    const scrollers = document.querySelectorAll('#news-ticker');
-    scrollers.forEach(scroller => {
-        const scrollerInner = scroller.querySelector('.scroller');
-        if (scrollerInner) {
-            Array.from(scrollerInner.children).forEach(item => {
-                scrollerInner.appendChild(item.cloneNode(true));
-            });
+    const words = parseBlockedWordsInput(blocklistInputEl.value);
+    if (!words.length) {
+        setBlocklistFeedback('Add at least one word to block.');
+        return;
+    }
+    let added = 0;
+    words.forEach(word => {
+        if (!blockedWords.has(word)) {
+            blockedWords.add(word);
+            added += 1;
         }
     });
+    if (added === 0) {
+        setBlocklistFeedback('Those words are already blocked.');
+    }
+    else {
+        setBlocklistFeedback(`Added ${added} word${added === 1 ? '' : 's'}.`);
+    }
+    blocklistInputEl.value = '';
+    persistBlockedWords();
+    renderFromCache();
+}
+function handleBlocklistClick(event) {
+    const target = event.target;
+    if (!target)
+        return;
+    const removeButton = target.closest('button[data-action="remove"]');
+    if (!removeButton)
+        return;
+    const item = removeButton.closest('li');
+    const word = item?.dataset.word;
+    if (!word)
+        return;
+    blockedWords.delete(word);
+    persistBlockedWords();
+    setBlocklistFeedback(`Removed "${word}".`);
+    renderFromCache();
+}
+function handleAdminEventListClick(event) {
+    const target = event.target;
+    if (!target)
+        return;
+    const actionButton = target.closest('button[data-action="toggle-hidden"]');
+    if (!actionButton)
+        return;
+    const card = actionButton.closest('.admin-event');
+    const idStr = card?.dataset.id;
+    if (!idStr)
+        return;
+    const id = Number(idStr);
+    if (!Number.isFinite(id))
+        return;
+    if (hiddenEventIds.has(id)) {
+        hiddenEventIds.delete(id);
+    }
+    else {
+        hiddenEventIds.add(id);
+    }
+    persistHiddenEventIds();
+    renderFromCache();
+}
+function handleClearHidden() {
+    hiddenEventIds.clear();
+    persistHiddenEventIds();
+    renderFromCache();
+}
+function initializeAdmin() {
+    renderBlocklist(blocklistEl, blockedWords);
+    renderAdminEventList(adminEventListEl, [], blockedWords, hiddenEventIds, adminEventLimit);
+    if (blocklistFormEl)
+        blocklistFormEl.addEventListener('submit', handleBlocklistSubmit);
+    if (blocklistEl)
+        blocklistEl.addEventListener('click', handleBlocklistClick);
+    if (adminEventListEl)
+        adminEventListEl.addEventListener('click', handleAdminEventListClick);
+    if (clearHiddenButtonEl)
+        clearHiddenButtonEl.addEventListener('click', handleClearHidden);
 }
 async function app() {
-    const events = await fetchPoliceEvents();
-    events.sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
-    const latest = events[0];
-    const tickerEvents = events.slice(1, 11);
-    if (latest)
-        displayLatestNews(latest);
-    displayEventTicker(tickerEvents);
-    addAnimation();
+    console.log('Initierar appen, hämtar data...');
+    try {
+        cachedNews = await fetchSvtNews();
+    }
+    catch (error) {
+        console.error('Fel vid hämtning av SVT-nyheter', error);
+        cachedNews = mockNewsItems;
+    }
+    cachedNews.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    renderFromCache();
 }
+initializeAdmin();
 app();
 setInterval(app, 60000);
