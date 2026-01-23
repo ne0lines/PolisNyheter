@@ -28,7 +28,7 @@ declare const L: LeafletLike;
 interface MapElements {
   mapContainerEl: HTMLElement | null;
   mapEl: HTMLElement | null;
-  newsContainerEl: HTMLElement | null;
+  newsContainerEl: HTMLElement | null; 
 }
 
 /** Create a map controller. Inputs: map container, map element, and news container. */
